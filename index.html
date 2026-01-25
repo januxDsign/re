@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reentry Essential PM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .kpi-card { transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); }
+        .status-btn { cursor: pointer; user-select: none; transition: all 0.2s; }
+        .status-btn:active { transform: scale(0.95); }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Sync Status Dot */
+        .status-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-online { background-color: #10b981; box-shadow: 0 0 5px #10b981; }
+        .status-error { background-color: #ef4444; }
+    </style>
+</head>
+<body class="p-6">
+</script>
+    <div class="max-w-7xl mx-auto mb-8 flex justify-between items-end">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Reentry Essential</h1>
+            <p class="text-slate-500 mt-1 flex items-center">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">Connecting...</span>
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div id="saveStatus" class="text-sm font-medium text-gray-500"></div>
+            <div class="loader" id="loader"></div>
+            <button onclick="saveToCloud()" id="syncBtn" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 transition">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Sync Changes
+            </button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="kpi-card bg-white p-6 rounded-xl shadow-sm border-l-4 border-gray-400" id="balanceCard">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase">RE Balance</p>
+                    <p class="text-xs text-slate-400 mt-1">("Not Paid" Projects - Payment History)</p>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-full text-gray-600">
+                    <i class="fa-solid fa-scale-balanced text-xl"></i>
+                </div>
+            </div>
+            <h2 class="text-4xl font-bold mt-4" id="kpiBalance">...</h2>
+            <p class="text-xs font-bold mt-1" id="balanceLabel">Loading Data</p>
+        </div>
+
+        <div class="kpi-card bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase">Total Paid Amount</p>
+                    <p class="text-xs text-slate-400 mt-1">Sum of Payment History Table</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-full text-blue-600">
+                    <i class="fa-solid fa-money-check-dollar text-xl"></i>
+                </div>
+            </div>
+            <h2 class="text-4xl font-bold text-slate-800 mt-4" id="kpiPaid">...</h2>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-bold text-slate-700">Design Projects</h3>
+            </div>
+            
+            <div class="p-4 bg-white border-b border-gray-100 grid grid-cols-12 gap-3 items-end">
+                <div class="col-span-7">
+                    <label class="text-xs font-bold text-gray-500">Project Name</label>
+                    <input type="text" id="inputProjectName" class="w-full px-3 py-2 border rounded-md text-sm">
+                </div>
+                <div class="col-span-3">
+                    <label class="text-xs font-bold text-gray-500">Price ($)</label>
+                    <input type="number" id="inputProjectPrice" class="w-full px-3 py-2 border rounded-md text-sm">
+                </div>
+                <div class="col-span-2">
+                    <button onclick="addProject()" class="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700">Add</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
+                        <tr>
+                            <th class="px-5 py-3">Project Name</th>
+                            <th class="px-5 py-3 w-32">Price</th>
+                            <th class="px-5 py-3 w-40 text-center">Status</th>
+                            <th class="px-5 py-3 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectTableBody" class="text-sm text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 bg-white rounded-xl shadow-sm overflow-hidden h-fit">
+            <div class="p-5 border-b border-gray-100 bg-slate-800 text-white">
+                <h3 class="font-bold">Payment History</h3>
+            </div>
+
+            <div class="p-4 bg-white border-b border-gray-100">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Date</label>
+                        <input type="date" id="inputPayDate" class="w-full px-3 py-2 border rounded-md text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Amount ($)</label>
+                        <input type="number" id="inputPayAmount" class="w-full px-3 py-2 border rounded-md text-sm">
+                    </div>
+                </div>
+                <button onclick="addManualPayment()" class="w-full bg-slate-700 text-white py-2 rounded-md text-sm hover:bg-slate-600">Add Record</button>
+            </div>
+
+            <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-blue-50 text-blue-800 text-xs uppercase sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2">Date</th>
+                            <th class="px-4 py-2 text-right">Amount</th>
+                            <th class="w-8"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentTableBody" class="text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        // ⚠️ PASTE YOUR GOOGLE SCRIPT URL HERE
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWFk-y5SyJXPMjeR04K4IxlMi0R9ldo1uM-ZhT8Jg6qVmAk-S1wAJdcgO9qfJlnUeDGA/exec"; 
+
+        // --- 2. STATE ---
+        let projects = [];
+        let payments = [];
+
+        // --- 3. CLOUD SYNC FUNCTIONS ---
+
+        // Load Data on Start (THE NEW FEATURE)
+        window.onload = function() {
+            fetchFromCloud();
+            document.getElementById('inputPayDate').valueAsDate = new Date();
+        };
+
+        async function fetchFromCloud() {
+            if(GOOGLE_SCRIPT_URL.includes("PASTE_YOUR")) {
+                setStatus(false, "Setup Required");
+                alert("Please paste your Google Script URL in the code!");
+
+                return;
+            }
+            
+            setStatus(false, "Syncing...");
+            try {
+                // Fetch data from Google Sheet
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await response.json();
+                
+                // Update State
+                projects = data.projects || [];
+                payments = data.payments || [];
+                
+                renderAll();
+                setStatus(true, "Online & Synced");
+            } catch (error) {
+                console.error(error);
+                setStatus(false, "Connection Error");
+                // Fallback to empty if fetch fails
+                renderAll(); 
+            }
+        }
+
+        async function saveToCloud() {
+            const btn = document.getElementById('syncBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+                // Save data to Google Sheet
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projects: projects, payments: payments })
+                });
+
+                setStatus(true, "Saved to Cloud");
+                setTimeout(() => { 
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false; 
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                setStatus(false, "Save Failed");
+                btn.innerHTML = "Error";
+            }
+        }
+
+        function setStatus(isOnline, text) {
+            const dot = document.getElementById('statusDot');
+            const txt = document.getElementById('statusText');
+            dot.className = isOnline ? 'status-dot status-online' : 'status-dot status-error';
+            txt.innerText = text;
+        }
+
+        // --- 4. RENDER LOGIC ---
+
+        function renderAll() {
+            renderProjects();
+            renderPayments();
+            updateKPIs();
+        }
+
+        function renderProjects() {
+            const tbody = document.getElementById('projectTableBody');
+            tbody.innerHTML = '';
+            projects.forEach((proj, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="px-5 py-3 font-medium">${proj.name}</td>
+                    <td class="px-5 py-3 text-slate-600">$${parseFloat(proj.price).toFixed(2)}</td>
+                    <td class="px-5 py-3 text-center">
+                        <div onclick="toggleProjectStatus(${index})" 
+                             class="status-btn inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border ${proj.paid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
+                            <i class="fa-solid ${proj.paid ? 'fa-check' : 'fa-xmark'}"></i>
+                            ${proj.paid ? 'Paid' : 'Not Paid'}
+                        </div>
+                    </td>
+                    <td class="px-5 py-3 text-right">
+                        <button onclick="deleteProject(${index})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPayments() {
+            const tbody = document.getElementById('paymentTableBody');
+            tbody.innerHTML = '';
+            payments.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            payments.forEach((pay, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-blue-50";
+                tr.innerHTML = `
+                    <td class="px-4 py-2 text-gray-600 font-mono text-xs">${pay.date}</td>
+                    <td class="px-4 py-2 text-right font-bold text-slate-700">$${parseFloat(pay.amount).toFixed(2)}</td>
+                    <td class="px-2 py-2 text-center">
+                        <button onclick="deletePayment(${index})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateKPIs() {
+            const totalPaidVal = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+            const notPaidProjectsTotal = projects.filter(p => !p.paid).reduce((sum, p) => sum + parseFloat(p.price), 0);
+            const balance = notPaidProjectsTotal - totalPaidVal;
+
+            document.getElementById('kpiPaid').textContent = `$${totalPaidVal.toFixed(2)}`;
+            const balanceEl = document.getElementById('kpiBalance');
+            const balanceCard = document.getElementById('balanceCard');
+            const balanceLabel = document.getElementById('balanceLabel');
+
+            if (balance > 0.01) {
+                balanceEl.textContent = `$${balance.toFixed(2)}`;
+                balanceEl.className = "text-4xl font-bold mt-4 text-red-600";
+                balanceCard.className = "kpi-card bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500";
+                balanceLabel.textContent = "Client Owes (Debit)";
+                balanceLabel.className = "text-xs font-bold mt-1 text-red-400";
+            } else if (balance < -0.01) {
+                balanceEl.textContent = `+ $${Math.abs(balance).toFixed(2)}`;
+                balanceEl.className = "text-4xl font-bold mt-4 text-green-600";
+                balanceCard.className = "kpi-card bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500";
+                balanceLabel.textContent = "Credit Balance (Surplus)";
+                balanceLabel.className = "text-xs font-bold mt-1 text-green-500";
+            } else {
+                balanceEl.textContent = `$0.00`;
+                balanceEl.className = "text-4xl font-bold mt-4 text-slate-800";
+                balanceCard.className = "kpi-card bg-white p-6 rounded-xl shadow-sm border-l-4 border-gray-400";
+                balanceLabel.textContent = "All Settled";
+                balanceLabel.className = "text-xs font-bold mt-1 text-gray-400";
+            }
+        }
+
+        // --- 5. INTERACTION HANDLERS ---
+
+        function toggleProjectStatus(index) {
+            projects[index].paid = !projects[index].paid;
+            renderAll();
+            setStatus(false, "Unsaved Changes...");
+        }
+
+        function addProject() {
+            const name = document.getElementById('inputProjectName').value;
+            const price = document.getElementById('inputProjectPrice').value;
+            if(!name || !price) return alert("Fill in project details");
+            
+            projects.push({ name, price: parseFloat(price), paid: false });
+            document.getElementById('inputProjectName').value = '';
+            document.getElementById('inputProjectPrice').value = '';
+            renderAll();
+            setStatus(false, "Unsaved Changes...");
+        }
+
+        function addManualPayment() {
+            const date = document.getElementById('inputPayDate').value;
+            const amount = document.getElementById('inputPayAmount').value;
+            if(!date || !amount) return alert("Fill in payment details");
+
+            payments.push({ date, amount: parseFloat(amount) });
+            document.getElementById('inputPayAmount').value = '';
+            renderAll();
+            setStatus(false, "Unsaved Changes...");
+        }
+
+        function deleteProject(index) {
+            if(confirm('Delete project?')) { 
+                projects.splice(index, 1); 
+                renderAll();
+                setStatus(false, "Unsaved Changes...");
+            }
+        }
+        function deletePayment(index) {
+            if(confirm('Delete payment record?')) { 
+                payments.splice(index, 1); 
+                renderAll(); 
+                setStatus(false, "Unsaved Changes...");
+            }
+        }
+    </script>
+</body>
+</html>
