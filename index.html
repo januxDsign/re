@@ -2,28 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reentry Essential PM</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-	<link rel="apple-touch-icon" href="/rex.png">
-	<link rel="icon" type="image/png" href="rex.png">
-	
-	    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    
+    <link rel="icon" type="image/png" href="rex.png">
+    <link rel="apple-touch-icon" href="rex.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Reentry PM">
+    <link rel="apple-touch-startup-image" href="splash.png">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
         .kpi-card { transition: transform 0.2s; }
         .kpi-card:hover { transform: translateY(-2px); }
         .status-btn { cursor: pointer; user-select: none; transition: all 0.2s; }
         .status-btn:active { transform: scale(0.95); }
         .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Sync Status Dot */
         .status-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .status-online { background-color: #10b981; box-shadow: 0 0 5px #10b981; }
         .status-error { background-color: #ef4444; }
+        
+        /* Smooth scrolling for iOS */
+        .overflow-y-auto { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-6 overscroll-none">
+
     <div class="max-w-7xl mx-auto mb-8 flex justify-between items-end">
         <div>
             <h1 class="text-3xl font-bold text-slate-800">Reentry Essential</h1>
@@ -71,26 +83,23 @@
     </div>
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="p-5 border-b border-gray-100 bg-gray-50">
                 <h3 class="font-bold text-slate-700">Design Projects</h3>
             </div>
-            
             <div class="p-4 bg-white border-b border-gray-100 grid grid-cols-12 gap-3 items-end">
                 <div class="col-span-7">
                     <label class="text-xs font-bold text-gray-500">Project Name</label>
-                    <input type="text" id="inputProjectName" class="w-full px-3 py-2 border rounded-md text-sm">
+                    <input type="text" id="inputProjectName" class="w-full px-3 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="col-span-3">
                     <label class="text-xs font-bold text-gray-500">Price ($)</label>
-                    <input type="number" id="inputProjectPrice" class="w-full px-3 py-2 border rounded-md text-sm">
+                    <input type="number" id="inputProjectPrice" class="w-full px-3 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="col-span-2">
-                    <button onclick="addProject()" class="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700">Add</button>
+                    <button onclick="addProject()" class="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700 active:scale-95 transition">Add</button>
                 </div>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
@@ -110,21 +119,19 @@
             <div class="p-5 border-b border-gray-100 bg-slate-800 text-white">
                 <h3 class="font-bold">Payment History</h3>
             </div>
-
             <div class="p-4 bg-white border-b border-gray-100">
                 <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="text-xs font-bold text-gray-500">Date</label>
-                        <input type="date" id="inputPayDate" class="w-full px-3 py-2 border rounded-md text-sm">
+                        <input type="date" id="inputPayDate" class="w-full px-3 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-slate-500">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500">Amount ($)</label>
-                        <input type="number" id="inputPayAmount" class="w-full px-3 py-2 border rounded-md text-sm">
+                        <input type="number" id="inputPayAmount" class="w-full px-3 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-slate-500">
                     </div>
                 </div>
-                <button onclick="addManualPayment()" class="w-full bg-slate-700 text-white py-2 rounded-md text-sm hover:bg-slate-600">Add Record</button>
+                <button onclick="addManualPayment()" class="w-full bg-slate-700 text-white py-2 rounded-md text-sm hover:bg-slate-600 active:scale-95 transition">Add Record</button>
             </div>
-
             <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-blue-50 text-blue-800 text-xs uppercase sticky top-0">
@@ -138,50 +145,31 @@
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        // ⚠️ PASTE YOUR GOOGLE SCRIPT URL HERE
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWFk-y5SyJXPMjeR04K4IxlMi0R9ldo1uM-ZhT8Jg6qVmAk-S1wAJdcgO9qfJlnUeDGA/exec"; 
 
-        // --- 2. STATE ---
         let projects = [];
         let payments = [];
 
-        // --- 3. CLOUD SYNC FUNCTIONS ---
-
-        // Load Data on Start (THE NEW FEATURE)
         window.onload = function() {
             fetchFromCloud();
             document.getElementById('inputPayDate').valueAsDate = new Date();
         };
 
         async function fetchFromCloud() {
-            if(GOOGLE_SCRIPT_URL.includes("PASTE_YOUR")) {
-                setStatus(false, "Setup Required");
-                alert("Please paste your Google Script URL in the code!");
-
-                return;
-            }
-            
             setStatus(false, "Syncing...");
             try {
-                // Fetch data from Google Sheet
                 const response = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await response.json();
-                
-                // Update State
                 projects = data.projects || [];
                 payments = data.payments || [];
-                
                 renderAll();
                 setStatus(true, "Online & Synced");
             } catch (error) {
                 console.error(error);
                 setStatus(false, "Connection Error");
-                // Fallback to empty if fetch fails
                 renderAll(); 
             }
         }
@@ -193,7 +181,6 @@
             btn.disabled = true;
 
             try {
-                // Save data to Google Sheet
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST', 
                     mode: 'no-cors', 
@@ -206,7 +193,6 @@
                     btn.innerHTML = originalText; 
                     btn.disabled = false; 
                 }, 1500);
-
             } catch (error) {
                 console.error(error);
                 setStatus(false, "Save Failed");
@@ -220,8 +206,6 @@
             dot.className = isOnline ? 'status-dot status-online' : 'status-dot status-error';
             txt.innerText = text;
         }
-
-        // --- 4. RENDER LOGIC ---
 
         function renderAll() {
             renderProjects();
@@ -246,7 +230,7 @@
                         </div>
                     </td>
                     <td class="px-5 py-3 text-right">
-                        <button onclick="deleteProject(${index})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="deleteProject(${index})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -257,7 +241,6 @@
             const tbody = document.getElementById('paymentTableBody');
             tbody.innerHTML = '';
             payments.sort((a,b) => new Date(b.date) - new Date(a.date));
-            
             payments.forEach((pay, index) => {
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-100 hover:bg-blue-50";
@@ -265,7 +248,7 @@
                     <td class="px-4 py-2 text-gray-600 font-mono text-xs">${pay.date}</td>
                     <td class="px-4 py-2 text-right font-bold text-slate-700">$${parseFloat(pay.amount).toFixed(2)}</td>
                     <td class="px-2 py-2 text-center">
-                        <button onclick="deletePayment(${index})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="deletePayment(${index})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -303,8 +286,6 @@
             }
         }
 
-        // --- 5. INTERACTION HANDLERS ---
-
         function toggleProjectStatus(index) {
             projects[index].paid = !projects[index].paid;
             renderAll();
@@ -315,7 +296,6 @@
             const name = document.getElementById('inputProjectName').value;
             const price = document.getElementById('inputProjectPrice').value;
             if(!name || !price) return alert("Fill in project details");
-            
             projects.push({ name, price: parseFloat(price), paid: false });
             document.getElementById('inputProjectName').value = '';
             document.getElementById('inputProjectPrice').value = '';
@@ -327,7 +307,6 @@
             const date = document.getElementById('inputPayDate').value;
             const amount = document.getElementById('inputPayAmount').value;
             if(!date || !amount) return alert("Fill in payment details");
-
             payments.push({ date, amount: parseFloat(amount) });
             document.getElementById('inputPayAmount').value = '';
             renderAll();
