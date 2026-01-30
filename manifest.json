@@ -1,6 +1,6 @@
 {
   "short_name": "RE PM",
-  "name": "Reentry Essential Project Manager",
+  "name": "RE",
   "icons": [
     {
       "src": "/rex.png",
@@ -18,4 +18,5 @@
   "display": "standalone",
   "scope": "/",
   "theme_color": "#1e293b"
+
 }
